@@ -15,7 +15,7 @@ import plotly.graph_objects as go
 # Streamlit App Configuration
 # -----------------------------------------------------------
 st.set_page_config(page_title="AI Log + Transcript Analyzer", layout="wide")
-st.title("🤖 AI Log + Transcript Analyzer (Pro Edition)")
+st.title("🤖 AI Log + Transcript Analyzer")
 st.caption("Upload your CSV log and VTT transcript to align, analyze, and visualize system-human interactions.")
 
 # -----------------------------------------------------------
@@ -213,3 +213,4 @@ if uploaded_csv and uploaded_vtt:
 
 else:
     st.info("⬆️ Please upload both a CSV and a VTT file to begin analysis.")
+
