@@ -19,6 +19,15 @@ st.title("🤖 AI Log + Transcript Analyzer (Pro Edition)")
 st.caption("Upload your CSV log and VTT transcript to align, analyze, and visualize system-human interactions.")
 
 # -----------------------------------------------------------
+# Helper: remove illegal Excel characters
+# -----------------------------------------------------------
+def remove_illegal_chars(value):
+    if isinstance(value, str):
+        # Remove control chars not allowed in XML/Excel
+        return re.sub(r"[\x00-\x08\x0B-\x0C\x0E-\x1F]", "", value)
+    return value
+
+# -----------------------------------------------------------
 # File Uploads
 # -----------------------------------------------------------
 uploaded_csv = st.file_uploader("📁 Upload CSV Log File", type=["csv"])
@@ -41,9 +50,11 @@ if uploaded_csv and uploaded_vtt:
             if pd.isna(data):
                 return None
             try:
-                return bytes.fromhex(data.replace(" ", "")).decode('ascii', errors='ignore')
+                decoded = bytes.fromhex(data.replace(" ", "")).decode('ascii', errors='ignore')
+                return remove_illegal_chars(decoded)
             except Exception:
-                return data
+                return remove_illegal_chars(str(data))
+
         if "Data" in df.columns:
             df["Data_clean"] = df["Data"].apply(clean_data)
         return df
@@ -189,10 +200,12 @@ if uploaded_csv and uploaded_vtt:
     # -----------------------------------------------------------
     # Download Aligned Excel
     # -----------------------------------------------------------
+    st.header("💾 Export Aligned Data")
+    cleaned_logs = logs[["Time", "Function", "Direction", "Status", "Data_clean", "Matched_Speech"]].applymap(remove_illegal_chars)
     output = io.BytesIO()
-    logs[["Time", "Function", "Direction", "Status", "Data_clean", "Matched_Speech"]].to_excel(output, index=False)
+    cleaned_logs.to_excel(output, index=False)
     st.download_button(
-        label="💾 Download Aligned Excel",
+        label="⬇️ Download Clean Aligned Excel",
         data=output.getvalue(),
         file_name=f"aligned_output_{datetime.now():%Y%m%d_%H%M%S}.xlsx",
         mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
